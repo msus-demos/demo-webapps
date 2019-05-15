@@ -1,11 +1,3 @@
-variables:
-  azureSubscription: 'MTC Denver Sandbox (b0e04a4a-a321-4b66-b8fd-13715262ba3c)'
-  storageAccessKey
-  storageAccountName
-  webAppName
-  acrName: mtcdensandboxdemo
-  repositoryName: msus-demos/demo-ruby-webapp
-
 stages:
 - stage: Build
   displayName: Build and Test the application
