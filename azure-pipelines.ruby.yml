@@ -14,7 +14,7 @@ stages:
     pool:
       vmImage: 'Ubuntu-16.04'
     steps:
-    - template: src/demo-ruby/webapp/azure-pipelines.yml
+    - template: src/demo-ruby-webapp/azure-pipelines.yml
       parameters:
         azureSubscription: $(sandboxAzureSubscription)
         acrName: $(acrName)
