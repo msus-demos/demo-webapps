@@ -1,0 +1,11 @@
+@{
+    ViewData["Title"] = "User Info";
+}
+<h2>@ViewData["Title"]</h2>
+<h3>@ViewData["Email"]</h3>
+
+<ul>
+    @foreach (var claim in User.Claims) {
+        <li>@claim.Type - @claim.Value</li>
+    }
+</ul>

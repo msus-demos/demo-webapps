@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/b0e04a4a-a321-4b66-b8fd-13715262ba3c/resourceGroups/demo-webapp-dev-rg/providers/Microsoft.Web/sites/mtcden-demo-webapp-aspnetcore-dev-app",
+    "appService.deploySubpath": "bin\\Release\\netcoreapp2.2\\publish"
+}

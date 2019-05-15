@@ -1,0 +1,33 @@
+parameters:
+  azureSubscription:
+  acrName:
+  repositoryName:
+
+variables:
+  repositoryName: '${{ parameters.acrName }}.azurecr.io/${{ parameters.repositoryName }}'
+  imageName: '$(repositoryName):$(build.buildId)'
+  dev-latest: '$(repositoryName):dev-latest'
+
+steps:
+- task: AzureCLI@1
+  displayName: Log in to ACR and pull latest dev image
+  inputs:
+    azureSubscription: ${{ parameters.azureSubscription }}
+    scriptLocation: inlineScript
+    inlineScript: |
+      az acr login -n ${{ parameters.acrName }}
+      docker pull $(dev-latest)
+  
+- script: | 
+    set -e 
+    docker build -t $(dev-latest) --target dev --cache-from $(dev-latest) .
+    docker run -e 'RAILS_ENV=test' dev bundle exec rspec
+  displayName: Build dev container image and run tests
+
+- script: |
+    set -e 
+    docker build --target release -t $(imageName) --cache-from $(dev-latest) .
+    docker push $(imageName)
+    docker push $(dev-latest)
+  displayName: Build and push the release container image
+  condition: ne($(Build.Reason), "PullRequest")

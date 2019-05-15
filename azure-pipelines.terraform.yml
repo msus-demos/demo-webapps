@@ -1,0 +1,27 @@
+name: $(Date:yyyyMMdd)$(Rev:.r)
+
+pool:
+  vmImage: 'ubuntu-16.04'
+
+trigger:
+  branches: 
+    include:
+      - master
+  paths:
+    include:
+      - terraform
+      - auzre-pipelines.terraform.yml
+
+steps:
+# Verify template and generate terraform plan
+- script: |
+    cd terraform
+    terraform fmt -check=true
+  displayName: Verify terraform template
+
+- script: cp terraform/* ./ $(Build.ArtifactStagingDirectory) -R
+  displayName: Copy terraform template to the staging directory
+
+  # Publish build artifacts
+- task: PublishBuildArtifacts@1
+

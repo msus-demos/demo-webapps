@@ -1,0 +1,26 @@
+trigger:
+  batch: true
+  branches:
+    include: 
+    - master
+  paths:
+    include:
+    - src/demo-java-webapp/*
+
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+# mvn package
+steps:
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'src/demo-java-webapp/pom.xml'
+    goals: 'package'
+
+- task: CopyFiles@2
+  inputs:
+    contents: '**/*.war'
+    targetFolder: '$(build.artifactStagingDirectory)'
+
+# Publish build artifacts
+- task: PublishBuildArtifacts@1

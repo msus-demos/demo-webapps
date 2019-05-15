@@ -1,0 +1,40 @@
+parameters:
+  azureSubscription:
+  storageAccessKey:
+  storageAccountName:
+  environment:
+
+steps:
+- script: |
+    cd terraform
+    terraform fmt -check=true
+  displayName: Verify terraform template
+
+- task: AzureCLI@1
+  inputs:
+    azureSubscription: ${{ parameters.azureSubscription }}
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      # Configure Terraform auth since it doesn't support SP login from the CLI
+      export ARM_TENANT_ID=$(az account show --query tenantId)
+      export ARM_SUBSCRIPTION_ID=$(az account show --query id)
+      export ARM_CLIENT_ID=$servicePrincipalId 
+      export ARM_CLIENT_SECRET=$servicePrincipalKey 
+
+      terraform init \
+          -backend-config="access_key=${{parameters.storageAccessKey}}" \
+          -backend-config="storage_account_name=${{parameters.storageAccountName}}" \
+          -input=false 
+
+      terraform workspace select ${{parameters.environment}} || terraform workspace new ${{parameters.environment}}
+
+      terraform plan \
+          -var environment="${{parameters.environment}}" \
+          -out=${{parameters.environment}}.tfplan \
+          -input=false
+
+      terraform apply \
+        ${{parameters.environment}}.tfplan
+        -input=false
+    addSpnToEnvironment: true
+  displayName: Deploy Infrastructure with Terraform

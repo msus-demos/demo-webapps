@@ -1,0 +1,6 @@
+.terraform
+crash.log
+bin
+debug
+obj
+.vs

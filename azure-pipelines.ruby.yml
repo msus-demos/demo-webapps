@@ -1,0 +1,47 @@
+variables:
+  azureSubscription: 'MTC Denver Sandbox (b0e04a4a-a321-4b66-b8fd-13715262ba3c)'
+  storageAccessKey
+  storageAccountName
+  webAppName
+  acrName: mtcdensandboxdemo
+  repositoryName: msus-demos/demo-ruby-webapp
+
+stages:
+- stage: Build
+  displayName: Build and Test the application
+  jobs:
+  - job: BuildAndTest
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
+    - template: src/demo-ruby/webapp/azure-pipelines.yml
+      parameters:
+        azureSubscription: $(azureSubscription)
+        acrName: $(acrName)
+        repositoryName: $(repositoryName)
+      
+- stage: Deploy
+  condition: ne($(Build.Reason), "PullRequest")
+  jobs:
+  - deployment: Sandbox
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    environment: 'Sandbox'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - template: templates/terraform.yml
+            parameters: 
+              azureSubscription: $(azureSubscription)
+              storageAccessKey: $(storageAccessKey)
+              storageAccountName: $(storageAccountName)
+              environment: Sandbox
+          - task: AzureRmWebAppDeployment@4
+            inputs:
+              ConnectionType: 'AzureRM'
+              azureSubscription: $(azureSubscription)
+              appType: 'webAppLinux'
+              WebAppName: 'mtcden-demo-webapp-ruby-staging-app'
+              packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
+              StartupCommand: 'bundle exec rails s'
