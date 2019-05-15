@@ -16,29 +16,29 @@ stages:
       acrName: $(acrName)
       repositoryName: $(repositoryName)
       
-- stage: Release
-  condition: ne(variables['Build.Reason'], 'PullRequest')
-  jobs:
-  - deployment: Sandbox
-    pool:
-      vmImage: 'Ubuntu-16.04'
-    environment: 'Sandbox'
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - template: templates/terraform.yml
-            parameters: 
-              azureSubscription: $(sandboxAzureSubscription)
-              storageAccessKey: $(storageAccessKey)
-              storageAccountName: $(storageAccountName)
-              environment: Sandbox
-          - task: AzureRmWebAppDeployment@4
-            inputs:
-              ConnectionType: 'AzureRM'
-              azureSubscription: $(sandboxAzureSubscription)
-              appType: 'webAppLinux'
-              WebAppName: 'mtcden-demo-webapp-ruby-staging-app'
-              DockerNamespace: $(dockerNamespace)
-              DockerRepository: $(dockerRepository)
-              DockerImageTag: $(build.buildId)
+# - stage: Release
+#   condition: ne(variables['Build.Reason'], 'PullRequest')
+#   jobs:
+#   - deployment: Sandbox
+#     pool:
+#       vmImage: 'Ubuntu-16.04'
+#     environment: 'Sandbox'
+#     strategy:
+#       runOnce:
+#         deploy:
+#           steps:
+#           - template: templates/terraform.yml
+#             parameters: 
+#               azureSubscription: $(sandboxAzureSubscription)
+#               storageAccessKey: $(storageAccessKey)
+#               storageAccountName: $(storageAccountName)
+#               environment: Sandbox
+#           - task: AzureRmWebAppDeployment@4
+#             inputs:
+#               ConnectionType: 'AzureRM'
+#               azureSubscription: $(sandboxAzureSubscription)
+#               appType: 'webAppLinux'
+#               WebAppName: 'mtcden-demo-webapp-ruby-staging-app'
+#               DockerNamespace: $(dockerNamespace)
+#               DockerRepository: $(dockerRepository)
+#               DockerImageTag: $(build.buildId)
