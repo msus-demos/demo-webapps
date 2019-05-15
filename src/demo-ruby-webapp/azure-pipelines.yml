@@ -11,7 +11,7 @@ jobs:
 
   variables:
     imageName: ${{parameters.imageName}}:$(build.buildId)
-    dev-latest: ${{parameters.imageName}}:dev-latest
+    devLatest: ${{parameters.imageName}}:dev-latest
 
   steps:
   - task: AzureCLI@1
@@ -21,18 +21,18 @@ jobs:
       scriptLocation: inlineScript
       inlineScript: |
         az acr login -n ${{ parameters.acrName }}
-        docker pull $(dev-latest)
+        docker pull ${{variables.devLatest}}
     
   - script: | 
       set -e 
-      docker build -t $(dev-latest) --target dev --cache-from $(dev-latest) .
+      docker build -t $(dev-latest) --target dev --cache-from ${{variables.devLatest}} .
       docker run -e 'RAILS_ENV=test' dev bundle exec rspec
     displayName: Build dev container image and run tests
 
   - script: |
       set -e 
-      docker build --target release -t $(imageName) --cache-from $(dev-latest) .
-      docker push $(imageName)
-      docker push $(dev-latest)
+      docker build --target release -t ${{variables.imageName}} --cache-from ${{variables.devLatest}} .
+      docker push ${{variables.imageName}}
+      docker push ${{variables.devLatest}}
     displayName: Build and push the release container image
     condition: ne(variables['Build.Reason'], 'PullRequest')
