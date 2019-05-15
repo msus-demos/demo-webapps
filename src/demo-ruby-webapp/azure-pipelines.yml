@@ -17,10 +17,10 @@ jobs:
   - task: AzureCLI@1
     displayName: Log in to ACR and pull latest dev image
     inputs:
-      azureSubscription: ${{ parameters.azureSubscription }}
+      azureSubscription: ${{ parameters['azureSubscription'] }}
       scriptLocation: inlineScript
       inlineScript: |
-        az acr login -n ${{ parameters['acrName'[] }}
+        az acr login -n ${{ parameters['acrName'] }}
         docker pull ${{ variables['devLatest'] }}
     
   - script: | 
