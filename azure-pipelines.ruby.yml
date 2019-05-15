@@ -10,15 +10,11 @@ stages:
 - stage: Build
   displayName: Build and Test the application
   jobs:
-  - job: BuildAndTest
-    pool:
-      vmImage: 'Ubuntu-16.04'
-    steps:
-    - template: src/demo-ruby/webapp/azure-pipelines.yml
-      parameters:
-        azureSubscription: $(sandboxAzureSubscription)
-        acrName: $(acrName)
-        repositoryName: $(repositoryName)
+  - template: src/demo-ruby-webapp/azure-pipelines.yml
+    parameters:
+      azureSubscription: $(sandboxAzureSubscription)
+      acrName: $(acrName)
+      repositoryName: $(repositoryName)
       
 - stage: Release
   condition: ne($(Build.Reason), "PullRequest")
