@@ -35,4 +35,4 @@ jobs:
       docker push $(imageName)
       docker push $(dev-latest)
     displayName: Build and push the release container image
-    condition: ne($(Build.Reason), "PullRequest")
+    condition: ne(variables['Build.Reason'], 'PullRequest')
