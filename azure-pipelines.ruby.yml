@@ -1,3 +1,11 @@
+variables:
+  sandboxAzureSubscription: 'MTC Denver Sandbox (b0e04a4a-a321-4b66-b8fd-13715262ba3c)'
+  acrName: mtcdensandboxdemo
+  dockerNamespace: $(acrName).azurecr.io
+  dockerRepository: msus-demos/demo-ruby-webapp
+  imageName: $(dockerNamespace)/$(dockerRepository)
+  storageAccountName: 
+
 stages:
 - stage: Build
   displayName: Build and Test the application
@@ -8,11 +16,11 @@ stages:
     steps:
     - template: src/demo-ruby/webapp/azure-pipelines.yml
       parameters:
-        azureSubscription: $(azureSubscription)
+        azureSubscription: $(sandboxAzureSubscription)
         acrName: $(acrName)
         repositoryName: $(repositoryName)
       
-- stage: Deploy
+- stage: Release
   condition: ne($(Build.Reason), "PullRequest")
   jobs:
   - deployment: Sandbox
@@ -25,15 +33,16 @@ stages:
           steps:
           - template: templates/terraform.yml
             parameters: 
-              azureSubscription: $(azureSubscription)
+              azureSubscription: $(sandboxAzureSubscription)
               storageAccessKey: $(storageAccessKey)
               storageAccountName: $(storageAccountName)
               environment: Sandbox
           - task: AzureRmWebAppDeployment@4
             inputs:
               ConnectionType: 'AzureRM'
-              azureSubscription: $(azureSubscription)
+              azureSubscription: $(sandboxAzureSubscription)
               appType: 'webAppLinux'
               WebAppName: 'mtcden-demo-webapp-ruby-staging-app'
-              packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
-              StartupCommand: 'bundle exec rails s'
+              DockerNamespace: $(dockerNamespace)
+              DockerRepository: $(dockerRepository)
+              DockerImageTag: $(build.buildId)

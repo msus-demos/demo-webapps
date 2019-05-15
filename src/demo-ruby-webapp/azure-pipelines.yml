@@ -1,12 +1,11 @@
 parameters:
   azureSubscription:
   acrName:
-  repositoryName:
+  imageName:
 
 variables:
-  repositoryName: '${{ parameters.acrName }}.azurecr.io/${{ parameters.repositoryName }}'
-  imageName: '$(repositoryName):$(build.buildId)'
-  dev-latest: '$(repositoryName):dev-latest'
+  imageName: ${{parameters.imageName}}:$(build.buildId)
+  dev-latest: ${{parameters.imageName}}:dev-latest
 
 steps:
 - task: AzureCLI@1
