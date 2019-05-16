@@ -20,6 +20,7 @@ jobs:
       azureSubscription: ${{ parameters['azureSubscription'] }}
       scriptLocation: inlineScript
       inlineScript: |
+        echo ${{ variables['devLatest'] }}
         az acr login -n ${{ parameters['acrName'] }}
         docker pull ${{ variables['devLatest'] }}
     

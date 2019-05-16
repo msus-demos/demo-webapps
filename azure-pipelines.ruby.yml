@@ -1,9 +1,9 @@
 variables:
   sandboxAzureSubscription: 'MTC Denver Sandbox (b0e04a4a-a321-4b66-b8fd-13715262ba3c)'
   acrName: mtcdensandboxdemo
-  dockerNamespace: $(acrName).azurecr.io
+  dockerNamespace: ${{ variables['acrName'] }}.azurecr.io
   dockerRepository: msus-demos/demo-ruby-webapp
-  imageName: $(dockerNamespace)/$(dockerRepository)
+  imageName: ${{ variables['dockerNamespace'] }}/${{ variables['dockerRepository'] }}
   storageAccountName: 
 
 stages:
@@ -12,9 +12,9 @@ stages:
   jobs:
   - template: src/demo-ruby-webapp/azure-pipelines.yml
     parameters:
-      azureSubscription: $(sandboxAzureSubscription)
-      acrName: $(acrName)
-      repositoryName: $(repositoryName)
+      azureSubscription: ${{ variables['sandboxAzureSubscription'] }}
+      acrName: ${{ variables['acrName'] }}
+      repositoryName: ${{ variables['dockerRepository'] }}
       
 # - stage: Release
 #   condition: ne(variables['Build.Reason'], 'PullRequest')
