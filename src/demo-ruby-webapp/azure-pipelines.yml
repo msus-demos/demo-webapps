@@ -23,6 +23,7 @@ jobs:
         set -x
         az acr login -n ${{ parameters['acrName'] }}
         docker pull ${{ variables['latestDevTag'] }}
+    continueOnError: true # there's no guarantee the cache container exists
     
   - script: | 
       set -e -x
