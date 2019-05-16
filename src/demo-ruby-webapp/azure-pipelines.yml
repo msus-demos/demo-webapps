@@ -27,7 +27,7 @@ jobs:
     
   - script: | 
       set -e -x
-      docker build -t $(dev-latest) --target dev --cache-from ${{ variables['latestDevTag'] }} .
+      docker build -t  ${{ variables['latestDevTag'] }} --target dev --cache-from ${{ variables['latestDevTag'] }} .
       docker run -e 'RAILS_ENV=test' dev bundle exec rspec
     displayName: Build dev container image and run tests
 
