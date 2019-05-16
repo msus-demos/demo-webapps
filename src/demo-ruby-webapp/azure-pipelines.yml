@@ -1,7 +1,7 @@
 parameters:
   azureSubscription:
   acrName:
-  repositoryName:
+  dockerRepository:
 
 jobs:
 - job: BuildAndTest
@@ -10,8 +10,8 @@ jobs:
     vmImage: 'Ubuntu-16.04'
 
   variables:
-    imageName: ${{ parameters['repositoryName'] }}:${{ variables['Build.BuildId'] }}
-    devLatest: ${{ parameters['repositoryName'] }}:dev-latest
+    dockerImageTag: ${{ parameters['dockerRepository'] }}:${{ variables['Build.BuildId'] }}
+    latestDevTag: ${{ parameters['dockerRepository'] }}:dev-latest
 
   steps:
   - task: AzureCLI@1
@@ -21,20 +21,19 @@ jobs:
       scriptLocation: inlineScript
       inlineScript: |
         set -e -x
-        echo ${{ variables['devLatest'] }}
         az acr login -n ${{ parameters['acrName'] }}
-        docker pull ${{ variables['devLatest'] }}
+        docker pull ${{ variables['latestDevTag'] }}
     
   - script: | 
       set -e -x
-      docker build -t $(dev-latest) --target dev --cache-from ${{ variables['devLatest'] }} .
+      docker build -t $(dev-latest) --target dev --cache-from ${{ variables['latestDevTag'] }} .
       docker run -e 'RAILS_ENV=test' dev bundle exec rspec
     displayName: Build dev container image and run tests
 
   - script: |
       set -e -x
-      docker build --target release -t ${{ variables['imageName'] }} --cache-from ${{ variables['devLatest'] }} .
-      docker push ${{ variables['imageName'] }}
-      docker push ${{ variables['devLatest'] }}
+      docker build --target release -t ${{ variables['dockerImageTag'] }} --cache-from ${{ variables['latestDevTag'] }} .
+      docker push ${{ variables['dockerImageTag'] }}
+      docker push ${{ variables['latestDevTag'] }}
     displayName: Build and push the release container image
     condition: ne(variables['Build.Reason'], 'PullRequest')
