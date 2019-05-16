@@ -10,7 +10,7 @@ jobs:
     vmImage: 'Ubuntu-16.04'
 
   variables:
-    dockerImageTag: ${{ parameters['dockerRepository'] }}:${{ variables['Build.BuildId'] }}
+    dockerImageTag: ${{ parameters['dockerRepository'] }}:${{ variables['Build.BuildNumber'] }}
     latestDevTag: ${{ parameters['dockerRepository'] }}:dev-latest
 
   steps:
@@ -20,20 +20,20 @@ jobs:
       azureSubscription: ${{ parameters['azureSubscription'] }}
       scriptLocation: inlineScript
       inlineScript: |
-        set -x
+        set -e -x
         az acr login -n ${{ parameters['acrName'] }}
-        docker pull ${{ variables['latestDevTag'] }}
-    continueOnError: true # there's no guarantee the cache container exists
+        docker pull ${{ variables['latestDevTag'] }} || true
     
   - script: | 
       set -e -x
+      cd ${{ variables['System.DefaultWorkingDirectory'] }}/src/demo-ruby-webapp/
       docker build -t  ${{ variables['latestDevTag'] }} --target dev --cache-from ${{ variables['latestDevTag'] }} .
       docker run -e 'RAILS_ENV=test' dev bundle exec rspec
     displayName: Build dev container image and run tests
 
   - script: |
       set -e -x
-      docker build --target release -t ${{ variables['dockerImageTag'] }} --cache-from ${{ variables['latestDevTag'] }} .
+      docker build -t ${{ variables['dockerImageTag'] }}  --target release --cache-from ${{ variables['latestDevTag'] }} .
       docker push ${{ variables['dockerImageTag'] }}
       docker push ${{ variables['latestDevTag'] }}
     displayName: Build and push the release container image
