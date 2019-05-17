@@ -28,7 +28,7 @@ jobs:
       set -e -x
       cd $(System.DefaultWorkingDirectory)/src/demo-ruby-webapp/
       docker build -t  $(latestDevTag) --target dev --cache-from $(latestDevTag) .
-      docker run -e 'RAILS_ENV=test' dev bundle exec rspec
+      docker run -e 'RAILS_ENV=test' $(latestDevTag) bundle exec rspec
     displayName: Build dev container image and run tests
 
   - script: |
