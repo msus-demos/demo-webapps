@@ -11,7 +11,7 @@ jobs:
 
   variables:
     dockerImageTag: ${{ parameters['dockerRepository'] }}:$(Build.BuildNumber)
-    latestDevTag: ${{ parameters['dockerRepository'] }}:dev-latest
+    latestTestTag: ${{ parameters['dockerRepository'] }}:test-latest
 
   steps:
   - task: AzureCLI@1
@@ -20,22 +20,46 @@ jobs:
       azureSubscription: ${{ parameters['azureSubscription'] }}
       scriptLocation: inlineScript
       inlineScript: |
+        # Fail on errors, output every command and result to the log
         set -e -x
+
+        # Use the new Docker BuildKit features for improved caching
+        export DOCKER_BUILDKIT=1 
+
+        # Log in to the Azure Container Registry
         az acr login -n ${{ parameters['acrName'] }}
-        docker pull $(latestDevTag) || true
+
+        # Pull the latest Test image _if_ it's available, we'll use that as a cache later
+        docker pull $(latestTestTag) || true
     
   - script: | 
+      # Fail on errors, output every command and result to the log
       set -e -x
+
+      # Navigate to our app directory
       cd $(System.DefaultWorkingDirectory)/src/demo-ruby-webapp/
-      docker build -t  $(latestDevTag) --target dev --cache-from $(latestDevTag) .
-      docker run -e 'RAILS_ENV=test' $(latestDevTag) bundle exec rspec
+
+      # Build the Test stage and tag it as the latest Test image
+      docker build -t $(latestTestTag) --target test --cache-from $(latestTestTag) .
+
+      # Run rspec tests
+      docker run -e 'RAILS_ENV=test' $(latestTestTag) bundle exec rspec
     displayName: Build dev container image and run tests
 
   - script: |
+      # Fail on errors, output every command and result to the log
       set -e -x
+
+      # Navigate to our app directory
       cd $(System.DefaultWorkingDirectory)/src/demo-ruby-webapp/
-      docker build -t $(dockerImageTag)  --target release --cache-from $(latestDevTag) .
+
+      # Build the Release Docker Stage, using the latest test image as a layer cache
+      docker build -t $(dockerImageTag) --target release --cache-from $(latestTestTag) .
+
+      # Push the Release image to ACR
       docker push $(dockerImageTag)
-      docker push $(latestDevTag)
+
+      # Push the Test image to ACR as test-latest
+      docker push $(latestTestTag)
     displayName: Build and push the release container image
     condition: ne(variables['Build.Reason'], 'PullRequest')
