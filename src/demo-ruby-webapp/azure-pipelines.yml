@@ -33,6 +33,7 @@ jobs:
 
   - script: |
       set -e -x
+      cd $(System.DefaultWorkingDirectory)/src/demo-ruby-webapp/
       docker build -t $(dockerImageTag)  --target release --cache-from $(latestDevTag) .
       docker push $(dockerImageTag)
       docker push $(latestDevTag)
