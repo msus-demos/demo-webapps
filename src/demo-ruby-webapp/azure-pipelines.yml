@@ -45,6 +45,7 @@ jobs:
       # Run rspec tests
       docker run -e 'RAILS_ENV=test' $(latestTestTag) bundle exec rspec
     displayName: Build dev container image and run tests
+    condition: eq(variables['Build.Reason'], 'PullRequest')
 
   - script: |
       # Fail on errors, output every command and result to the log

@@ -38,7 +38,7 @@ EXPOSE 3000
 
 RUN bundle install --with development
 
-ENTRYPOINT /bin/bash
+CMD bundle exec rails s -p 80 -b 0.0.0.0
 
 
 # --------------------------------
@@ -60,4 +60,4 @@ COPY . ./
 
 EXPOSE 80
 
-ENTRYPOINT bundle exec rails s -p 80 -b 0.0.0.0
+CMD bundle exec rails s -p 80 -b 0.0.0.0
