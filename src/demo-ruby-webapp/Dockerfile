@@ -1,6 +1,9 @@
-# Base
+# --------------------------------
+# Base Container
+# --------------------------------
 FROM ruby:2.5.1-stretch as base
 
+# Install dependencies
 RUN apt-get update && apt-get install -y \
         git \
         build-essential \
@@ -10,21 +13,47 @@ RUN apt-get update && apt-get install -y \
         libqt4-dev \
         nodejs
 
+# Create our working directory
 RUN mkdir -p /var/app
 
+# Set up a working directory
 WORKDIR /var/app
 
+# Install rails a layer about bundle as it's slow and we _always_ want it cached
+RUN gem install rails -v 5.2.3
+
+# Copy in the gemfile for caching purposes
 COPY Gemfile Gemfile.lock ./
 
+# Bundle install
 RUN bundle install --without development test
 
-# Test
+
+# --------------------------------
+# Development Container
+# --------------------------------
 FROM base as dev
 
-RUN bundle install 
+EXPOSE 3000
+
+RUN bundle install --with development
+
+ENTRYPOINT /bin/bash
 
 
-# Release
+# --------------------------------
+# Test Container
+# --------------------------------
+FROM base as test
+
+COPY . ./
+
+RUN bundle install --with test
+
+
+# --------------------------------
+# Release Container
+# --------------------------------
 FROM base as release
 
 COPY . ./
