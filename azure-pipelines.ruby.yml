@@ -18,7 +18,7 @@ stages:
 - stage: Release
   displayName: Build and Test the application
   jobs:
-  - template: src/terraform/azure-pipelines.yml
+  - template: terraform/azure-pipelines.yml
     parameters:
       azureSubscription: ${{ variables['sandboxAzureSubscription'] }}
       acrName: ${{ variables['acrName'] }}
