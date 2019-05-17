@@ -21,7 +21,7 @@ stages:
     pool:
       vmImage: 'Ubuntu-16.04'
     
-    tasks:
+    steps:
     - task: AzureRmWebAppDeployment@4
       inputs:
         ConnectionType: 'AzureRM'
