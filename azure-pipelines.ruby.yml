@@ -7,7 +7,6 @@ variables:
 
 stages:
 - stage: Build
-  displayName: Build and Test the application
   jobs:
   - template: src/demo-ruby-webapp/azure-pipelines.yml
     parameters:
@@ -15,14 +14,23 @@ stages:
       acrName: ${{ variables['acrName'] }}
       dockerRepository: ${{ variables['dockerRepository'] }}
 
-- stage: Release
-  displayName: Build and Test the application
+- stage: Staging
   jobs:
-  - template: terraform/azure-pipelines.yml
-    parameters:
-      azureSubscription: ${{ variables['sandboxAzureSubscription'] }}
-      acrName: ${{ variables['acrName'] }}
-      dockerRepository: ${{ variables['dockerRepository'] }}
+  - job: BuildAndTest
+
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    
+    tasks:
+    - task: AzureRmWebAppDeployment@4
+      inputs:
+        ConnectionType: 'AzureRM'
+        azureSubscription: $(sandboxAzureSubscription)
+        appType: 'webAppLinux'
+        WebAppName: 'mtcden-demo-webapp-ruby-staging-app'
+        DockerNamespace: $(dockerNamespace)
+        DockerRepository: $(dockerRepository)
+        DockerImageTag: $(Build.BuildId)
       
 # - stage: Release
 #   condition: ne(variables['Build.Reason'], 'PullRequest')
