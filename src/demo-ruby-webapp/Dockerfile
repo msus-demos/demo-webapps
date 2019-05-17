@@ -30,13 +30,13 @@ RUN bundle install --without development test
 
 
 # --------------------------------
-# Development Container
+# Release Container
 # --------------------------------
-FROM base as dev
+FROM base as release
 
-EXPOSE 3000
+COPY . ./
 
-RUN bundle install --with development
+EXPOSE 80
 
 CMD bundle exec rails s -p 80 -b 0.0.0.0
 
@@ -52,12 +52,12 @@ RUN bundle install --with test
 
 
 # --------------------------------
-# Release Container
+# Development Container
 # --------------------------------
-FROM base as release
+FROM base as dev
 
-COPY . ./
+EXPOSE 3000
 
-EXPOSE 80
+RUN bundle install --with development
 
 CMD bundle exec rails s -p 80 -b 0.0.0.0
