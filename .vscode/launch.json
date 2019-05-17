@@ -10,7 +10,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/src/demo-aspnetcore-webapp/bin/Debug/netcoreapp2.1/demo-aspnetcore-webapp.dll",
+            "program": "${workspaceFolder}/src/demo-aspnetcore-webapp/bin/Debug/netcoreapp2.2/demo-aspnetcore-webapp.dll",
             "args": [],
             "cwd": "${workspaceFolder}/src/demo-aspnetcore-webapp",
             "stopAtEntry": false,

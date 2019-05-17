@@ -7,6 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace aad_b2c_dotnet.Controllers
 {
+    public class mytest {
+        public string mycooltest {get; set;}
+    }
+
     public class HomeController : Controller
     {
         public IActionResult Index()
@@ -19,6 +23,11 @@ namespace aad_b2c_dotnet.Controllers
             ViewData["Message"] = "Your application description page.";
 
             return View();
+        }
+        
+        [HttpPost]
+        public IActionResult Test([FromBody]mytest body) {
+            return new JsonResult($"It's working - {body.mycooltest}");
         }
 
         public IActionResult Contact()
