@@ -23,9 +23,6 @@ jobs:
         # Fail on errors, output every command and result to the log
         set -e -x
 
-        # Use the new Docker BuildKit features for improved caching
-        export DOCKER_BUILDKIT=1 
-
         # Log in to the Azure Container Registry
         az acr login -n ${{ parameters['acrName'] }}
 
@@ -40,7 +37,7 @@ jobs:
       cd $(System.DefaultWorkingDirectory)/src/demo-ruby-webapp/
 
       # Build the Test stage and tag it as the latest Test image
-      docker build -t $(latestTestTag) --target test --cache-from $(latestTestTag) .
+      DOCKER_BUILDKIT=1 docker build -t $(latestTestTag) --target test --cache-from $(latestTestTag) .
 
       # Run rspec tests
       docker run -e 'RAILS_ENV=test' $(latestTestTag) bundle exec rspec
@@ -55,7 +52,7 @@ jobs:
       cd $(System.DefaultWorkingDirectory)/src/demo-ruby-webapp/
 
       # Build the Release Docker Stage, using the latest test image as a layer cache
-      docker build -t $(dockerImageTag) --target release --cache-from $(latestTestTag) .
+      DOCKER_BUILDKIT=1 docker build -t $(dockerImageTag) --target release --cache-from $(latestTestTag) .
 
       # Push the Release image to ACR
       docker push $(dockerImageTag)
