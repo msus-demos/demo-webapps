@@ -14,25 +14,34 @@ stages:
       azureSubscription: ${{ variables['sandboxAzureSubscription'] }}
       acrName: ${{ variables['acrName'] }}
       dockerRepository: ${{ variables['dockerRepository'] }}
-      
+
 - stage: Release
-  condition: ne(variables['Build.Reason'], 'PullRequest')
+  displayName: Build and Test the application
   jobs:
-  - deployment: Sandbox
-    pool:
-      vmImage: 'Ubuntu-16.04'
-    environment: 'Sandbox'
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - template: templates/terraform.yml
-            parameters: 
-              azureSubscription: $(sandboxAzureSubscription)
-              storageAccessKey: $(storageAccessKey)
-              storageAccountName: $(storageAccountName)
-              environment: Sandbox
-          # - task: AzureRmWebAppDeployment@4
+  - template: src/terraform/azure-pipelines.yml
+    parameters:
+      azureSubscription: ${{ variables['sandboxAzureSubscription'] }}
+      acrName: ${{ variables['acrName'] }}
+      dockerRepository: ${{ variables['dockerRepository'] }}
+      
+# - stage: Release
+#   condition: ne(variables['Build.Reason'], 'PullRequest')
+#   jobs:
+#   - deployment: Sandbox
+#     pool:
+#       vmImage: 'Ubuntu-16.04'
+#     environment: 'Sandbox'
+#     strategy:
+#       runOnce:
+#         deploy:
+#           steps:
+#           - template: templates/terraform.yml
+#             parameters: 
+#               azureSubscription: $(sandboxAzureSubscription)
+#               storageAccessKey: $(storageAccessKey)
+#               storageAccountName: $(storageAccountName)
+#               environment: Sandbox
+#           # - task: AzureRmWebAppDeployment@4
           #   inputs:
           #     ConnectionType: 'AzureRM'
           #     azureSubscription: $(sandboxAzureSubscription)
