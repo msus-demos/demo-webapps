@@ -4,14 +4,16 @@
 FROM ruby:2.5.1-stretch as base
 
 # Install dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y -qq \
         git \
         build-essential \
         g++ \
         libpq-dev \
         qt4-dev-tools \
         libqt4-dev \
-        nodejs
+        nodejs \
+        openssh-server \
+        tcptraceroute
 
 # Create our working directory
 RUN mkdir -p /var/app
@@ -34,11 +36,15 @@ RUN bundle install --without development test
 # --------------------------------
 FROM base as release
 
+# Configure password for SSH
+RUN echo "root:Docker!" | chpasswd && \
+    echo "cd /home" >> /etc/bash.bashrc
+
 COPY . ./
 
-EXPOSE 80
+EXPOSE 2222 8080
 
-CMD bundle exec rails s -p 80 -b 0.0.0.0
+CMD bundle exec rails s -p 8080 -b 0.0.0.0
 
 
 # --------------------------------

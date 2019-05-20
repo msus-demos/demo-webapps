@@ -1,5 +1,6 @@
 variables:
   sandboxAzureSubscription: 'MTC Denver Sandbox (b0e04a4a-a321-4b66-b8fd-13715262ba3c)'
+  productionAzureSubscription: 'MTC Denver Production (72f988bf-86f1-41af-91ab-2d7cd011db47)'
   acrName: mtcdensandboxdemo
   dockerNamespace: ${{ variables['acrName'] }}.azurecr.io
   dockerRepository: ${{ variables['dockerNamespace'] }}/msus-demos/demo-ruby-webapp
@@ -16,11 +17,9 @@ stages:
 
 - stage: Staging
   jobs:
-  - job: BuildAndTest
-
+  - job: Deploy
     pool:
       vmImage: 'Ubuntu-16.04'
-    
     steps:
     - task: AzureRmWebAppDeployment@4
       inputs:
@@ -31,31 +30,20 @@ stages:
         DockerNamespace: $(dockerNamespace)
         DockerRepository: $(dockerRepository)
         DockerImageTag: $(Build.BuildNumber)
-        #StartupCommand: 'startup'
-
-# - stage: Release
-#   condition: ne(variables['Build.Reason'], 'PullRequest')
+        
+# - stage: Production
 #   jobs:
-#   - deployment: Sandbox
+#   - job: Deploy
 #     pool:
 #       vmImage: 'Ubuntu-16.04'
-#     environment: 'Sandbox'
-#     strategy:
-#       runOnce:
-#         deploy:
-#           steps:
-#           - template: templates/terraform.yml
-#             parameters: 
-#               azureSubscription: $(sandboxAzureSubscription)
-#               storageAccessKey: $(storageAccessKey)
-#               storageAccountName: $(storageAccountName)
-#               environment: Sandbox
-#           # - task: AzureRmWebAppDeployment@4
-          #   inputs:
-          #     ConnectionType: 'AzureRM'
-          #     azureSubscription: $(sandboxAzureSubscription)
-          #     appType: 'webAppLinux'
-          #     WebAppName: 'mtcden-demo-webapp-ruby-staging-app'
-          #     DockerNamespace: $(dockerNamespace)
-          #     DockerRepository: $(dockerRepository)
-          #     DockerImageTag: $(build.buildId)
+#     steps:
+#     - task: AzureRmWebAppDeployment@4
+#       inputs:
+#         ConnectionType: 'AzureRM'
+#         azureSubscription: $(sandboxAzureSubscription)
+#         appType: 'webAppContainer'
+#         WebAppName: 'mtcden-demo-webapp-ruby-sandbox-app'
+#         containerregistrytype:
+#         DockerNamespace: $(dockerNamespace)
+#         DockerRepository: $(dockerRepository)
+#         DockerImageTag: $(Build.BuildNumber)
