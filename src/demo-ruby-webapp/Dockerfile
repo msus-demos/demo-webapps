@@ -37,14 +37,13 @@ RUN bundle install --without development test
 FROM base as release
 
 # Configure password for SSH
-RUN echo "root:Docker!" | chpasswd && \
-    echo "cd /home" >> /etc/bash.bashrc
+RUN echo "root:Docker!" | chpasswd
 
 COPY . ./
 
 EXPOSE 2222 8080
 
-CMD bundle exec rails s -p 8080 -b 0.0.0.0
+CMD RAILS_ENV=production bundle exec rails s -p 8080 -b 0.0.0.0
 
 
 # --------------------------------
@@ -62,8 +61,8 @@ RUN bundle install --with test
 # --------------------------------
 FROM base as dev
 
-EXPOSE 3000
+EXPOSE 8080
 
 RUN bundle install --with development
 
-CMD bundle exec rails s -p 80 -b 0.0.0.0
+CMD bundle exec rails s -p 8080 -b 0.0.0.0
