@@ -30,7 +30,7 @@ stages:
         WebAppName: 'mtcden-demo-webapp-ruby-sandbox-app'
         DockerNamespace: $(dockerNamespace)
         DockerRepository: $(dockerRepository)
-        DockerImageTag: $(Build.BuildId)
+        DockerImageTag: $(Build.BuildNumber)
         #StartupCommand: 'startup'
 
 # - stage: Release
