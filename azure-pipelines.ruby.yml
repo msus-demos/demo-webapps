@@ -26,12 +26,13 @@ stages:
       inputs:
         ConnectionType: 'AzureRM'
         azureSubscription: $(sandboxAzureSubscription)
-        appType: 'webAppLinux'
-        WebAppName: 'mtcden-demo-webapp-ruby-staging-app'
+        appType: 'webAppContainer'
+        WebAppName: 'mtcden-demo-webapp-ruby-sandbox-app'
         DockerNamespace: $(dockerNamespace)
         DockerRepository: $(dockerRepository)
         DockerImageTag: $(Build.BuildId)
-      
+        #StartupCommand: 'startup'
+
 # - stage: Release
 #   condition: ne(variables['Build.Reason'], 'PullRequest')
 #   jobs:
