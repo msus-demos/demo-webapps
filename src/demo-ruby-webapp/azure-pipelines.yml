@@ -16,43 +16,32 @@ jobs:
     latestTestTag: ${{ parameters['dockerFullyQualifiedImageName'] }}:test-latest
 
   steps:
+
+  # Build intermediate images
   - task: AzureCLI@1
-    displayName: Log in to ACR, pull and build test image
+    displayName: Log in to ACR, pull, build, and cache intermediate image
     inputs:
       azureSubscription: ${{ parameters['azureSubscription'] }}
       scriptLocation: inlineScript
+      workingDirectory: $(System.DefaultWorkingDirectory)/src/demo-ruby-webapp/
       inlineScript: |
-        # Fail on errors, output every command and result to the log
-        set -e -x
-
         # Log in to the Azure Container Registry
         az acr login -n ${{ parameters['acrName'] }}
 
+        # Pull the latest Base image _if_ it's available, we'll use that as a cache later
+        docker pull $(latestBaseTag) || true
+
+        # Build the Base stage and tag it as the latest Base image
+        docker build \
+          -t $(latestBaseTag) \
+          --target base \
+          --cache-from $(latestBaseTag) \
+          .
+
+  # Run tests
   - script: | 
       # Fail on errors, output every command and result to the log
       set -e -x
-
-      # Pull the latest Base image _if_ it's available, we'll use that as a cache later
-      docker pull $(latestBaseTag) || true
-
-      # Navigate to our app directory
-      cd $(System.DefaultWorkingDirectory)/src/demo-ruby-webapp/
-
-      # Build the Base stage and tag it as the latest Base image
-      docker build \
-        -t $(latestBaseTag) \
-        --target base \
-        --cache-from $(latestBaseTag) \
-        .
-    displayName: Pull, build, and cache intermediate images
-
-
-  - script: | 
-      # Fail on errors, output every command and result to the log
-      set -e -x
-
-      # Navigate to our app directory
-      cd $(System.DefaultWorkingDirectory)/src/demo-ruby-webapp/
 
       # Pull the latest Test image _if_ it's available, we'll use that as a cache later
       docker pull $(latestTestTag) || true
@@ -73,15 +62,14 @@ jobs:
 
       # Push latest test image to ACR as test-latest
       docker push $(latestTestTag)
+    workingDirectory: $(System.DefaultWorkingDirectory)/src/demo-ruby-webapp/
     displayName: Run RSpec Tests
     condition: eq(variables['Build.Reason'], 'PullRequest')
 
+  # Build release container
   - script: |
       # Fail on errors, output every command and result to the log
       set -e -x
-
-      # Navigate to our app directory
-      cd $(System.DefaultWorkingDirectory)/src/demo-ruby-webapp/
 
       docker build \
         -t $(dockerImageAndTag) \
@@ -101,5 +89,6 @@ jobs:
 
       # Push the Base image to ACR as base-latest
       docker push $(latestBaseTag)
+    workingDirectory: $(System.DefaultWorkingDirectory)/src/demo-ruby-webapp/
     displayName: Build and push the final container images
     condition: ne(variables['Build.Reason'], 'PullRequest')
