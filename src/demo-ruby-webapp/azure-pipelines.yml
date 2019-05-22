@@ -73,9 +73,6 @@ jobs:
 
       # Push latest test image to ACR as test-latest
       docker push $(latestTestTag)
-
-      # Push the Base image to ACR as base-latest
-      docker push $(latestBaseTag)
     displayName: Run RSpec Tests
     condition: eq(variables['Build.Reason'], 'PullRequest')
 
@@ -96,7 +93,7 @@ jobs:
       docker build \
         -t $(dockerImageAndTag) \
         --target release \
-        --cache-from $(latestBaseTag)
+        --cache-from $(latestBaseTag) \
         .
 
       # Push the Release image to ACR
