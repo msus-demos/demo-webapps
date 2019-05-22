@@ -16,7 +16,7 @@ jobs:
 
   steps:
   - task: AzureCLI@1
-    displayName: Log in to ACR and pull latest dev image
+    displayName: Log in to ACR, pull and build test image
     inputs:
       azureSubscription: ${{ parameters['azureSubscription'] }}
       scriptLocation: inlineScript
@@ -29,20 +29,20 @@ jobs:
 
         # Pull the latest Test image _if_ it's available, we'll use that as a cache later
         docker pull $(latestTestTag) || true
-    
+
+        # Navigate to our app directory
+        cd $(System.DefaultWorkingDirectory)/src/demo-ruby-webapp/
+
+        # Build the Test stage and tag it as the latest Test image
+        docker build -t $(latestTestTag) --target test --cache-from $(latestTestTag) .    
+
   - script: | 
       # Fail on errors, output every command and result to the log
       set -e -x
 
-      # Navigate to our app directory
-      cd $(System.DefaultWorkingDirectory)/src/demo-ruby-webapp/
-
-      # Build the Test stage and tag it as the latest Test image
-      docker build -t $(latestTestTag) --target test --cache-from $(latestTestTag) .
-
-      # Run rspec tests
+      # Run RSpec tests
       docker run -e 'RAILS_ENV=test' $(latestTestTag) bundle exec rspec
-    displayName: Build dev container image and run tests
+    displayName: Run RSpec Tests
     condition: eq(variables['Build.Reason'], 'PullRequest')
 
   - script: |
