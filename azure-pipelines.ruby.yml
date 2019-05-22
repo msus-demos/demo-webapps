@@ -14,8 +14,8 @@ pr:
   autoCancel: true
  
 variables:
-  sandboxAzureSubscription: 'MTC Denver Sandbox (b0e04a4a-a321-4b66-b8fd-13715262ba3c)'
-  productionAzureSubscription: 'MTC Denver Production (72f988bf-86f1-41af-91ab-2d7cd011db47)'
+  sandboxAzureSubscription: 'MTC Denver Sandbox'
+  productionAzureSubscription: 'MTC Denver Production'
   sandboxWebAppName: 'mtcden-demo-webapp-ruby-sandbox-app'
   productionWebAppName: 'mtcden-demo-webapp-ruby-production-app'
   acrName: mtcdensandboxdemo
