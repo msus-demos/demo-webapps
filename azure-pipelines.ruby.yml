@@ -24,6 +24,7 @@ stages:
       vmImage: 'Ubuntu-16.04'
     steps:
     - task: AzureRmWebAppDeployment@4
+      displayName: Deploy Web App
       inputs:
         ConnectionType: 'AzureRM'
         azureSubscription: $(sandboxAzureSubscription)
