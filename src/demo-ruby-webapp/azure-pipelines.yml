@@ -6,12 +6,13 @@ parameters:
 
 jobs:
 - job: BuildAndTest
-
+  displayName: Build and Test
   pool:
     vmImage: 'Ubuntu-16.04'
 
   variables:
     dockerImageAndTag: ${{ parameters['dockerFullyQualifiedImageName'] }}:${{ parameters['dockerTag'] }}
+    latestBaseTag: ${{ parameters['dockerFullyQualifiedImageName'] }}:base-latest
     latestTestTag: ${{ parameters['dockerFullyQualifiedImageName'] }}:test-latest
 
   steps:
@@ -27,21 +28,54 @@ jobs:
         # Log in to the Azure Container Registry
         az acr login -n ${{ parameters['acrName'] }}
 
-        # Pull the latest Test image _if_ it's available, we'll use that as a cache later
-        docker pull $(latestTestTag) || true
+  - script: | 
+      # Fail on errors, output every command and result to the log
+      set -e -x
 
-        # Navigate to our app directory
-        cd $(System.DefaultWorkingDirectory)/src/demo-ruby-webapp/
+      # Pull the latest Base image _if_ it's available, we'll use that as a cache later
+      docker pull $(latestBaseTag) || true
 
-        # Build the Test stage and tag it as the latest Test image
-        docker build -t $(latestTestTag) --target test --cache-from $(latestTestTag) .    
+      # Navigate to our app directory
+      cd $(System.DefaultWorkingDirectory)/src/demo-ruby-webapp/
+
+      # Build the Base stage and tag it as the latest Base image
+      docker build \
+        -t $(latestBaseTag) \
+        --target base \
+        --cache-from $(latestBaseTag)
+        .
+    displayName: Build and cache intermediate images
+
 
   - script: | 
       # Fail on errors, output every command and result to the log
       set -e -x
 
+      # Navigate to our app directory
+      cd $(System.DefaultWorkingDirectory)/src/demo-ruby-webapp/
+
+      # Pull the latest Test image _if_ it's available, we'll use that as a cache later
+      docker pull $(latestTestTag) || true
+
+      # Build the Test stage and tag it as the latest Base image
+      docker build \
+        -t $(latestTestTag) \
+        --target test \
+        --cache-from $(latestBaseTag) \
+        --cache-from $(latestTestTag) \
+        .
+
       # Run RSpec tests
-      docker run -e 'RAILS_ENV=test' $(latestTestTag) bundle exec rspec
+      docker run \
+        -e 'RAILS_ENV=test' \
+        $(latestTestTag) \
+        bundle exec rspec -format RspecJunitFormatter --out result.xml
+
+      # Push latest test image to ACR as test-latest
+      docker push $(latestTestTag)
+
+      # Push the Base image to ACR as base-latest
+      docker push $(latestBaseTag)
     displayName: Run RSpec Tests
     condition: eq(variables['Build.Reason'], 'PullRequest')
 
@@ -52,13 +86,23 @@ jobs:
       # Navigate to our app directory
       cd $(System.DefaultWorkingDirectory)/src/demo-ruby-webapp/
 
+      docker build \
+        -t $(dockerImageAndTag) \
+        --target release \
+        --cache-from $(latestBaseTag) \
+        .
+
       # Build the Release Docker Stage, using the latest test image as a layer cache
-      docker build -t $(dockerImageAndTag) --target release --cache-from $(latestTestTag) .
+      docker build \
+        -t $(dockerImageAndTag) \
+        --target release \
+        --cache-from $(latestBaseTag)
+        .
 
       # Push the Release image to ACR
       docker push $(dockerImageAndTag)
 
-      # Push the Test image to ACR as test-latest
-      docker push $(latestTestTag)
-    displayName: Build and push the release container image
+      # Push the Base image to ACR as base-latest
+      docker push $(latestBaseTag)
+    displayName: Build and push the final container images
     condition: ne(variables['Build.Reason'], 'PullRequest')
