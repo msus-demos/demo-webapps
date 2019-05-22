@@ -1,3 +1,18 @@
+trigger:
+  batch: true
+  branches:
+    include:
+    - master
+    - multi_stage_deploy
+  paths:
+    include:
+    - terraform/*
+    - src/demo-ruby-webapp/*
+    - azure-pipelines.ruby.yml
+
+pr:
+  autoCancel: true
+ 
 variables:
   sandboxAzureSubscription: 'MTC Denver Sandbox (b0e04a4a-a321-4b66-b8fd-13715262ba3c)'
   productionAzureSubscription: 'MTC Denver Production (72f988bf-86f1-41af-91ab-2d7cd011db47)'
@@ -7,6 +22,7 @@ variables:
   webAppName: 'mtcden-demo-webapp-ruby-sandbox-app'
   storageAccountName: 
 
+# Build and Test
 stages:
 - stage: Build
   jobs:
@@ -17,6 +33,7 @@ stages:
       dockerFullyQualifiedImageName: $(dockerNamespace)/$(dockerImageName)
       dockerTag: $(Build.BuildNumber)
 
+# Staging Release
 - stage: Staging
   jobs:
   - job: Deploy
@@ -33,7 +50,8 @@ stages:
         DockerNamespace: $(dockerNamespace)
         DockerRepository: $(dockerImageName)
         DockerImageTag: $(Build.BuildNumber)
-        
+
+# Production Release
 # - stage: Production
 #   jobs:
 #   - job: Deploy
