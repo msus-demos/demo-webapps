@@ -1,7 +1,8 @@
 parameters:
   azureSubscription:
   acrName:
-  dockerRepository:
+  dockerFullyQualifiedImageName:
+  dockerTag:
 
 jobs:
 - job: BuildAndTest
@@ -10,8 +11,8 @@ jobs:
     vmImage: 'Ubuntu-16.04'
 
   variables:
-    dockerImageTag: ${{ parameters['dockerRepository'] }}:$(Build.BuildNumber)
-    latestTestTag: ${{ parameters['dockerRepository'] }}:test-latest
+    dockerImageAndTag: ${{ parameters['dockerFullyQualifiedImageName'] }}:${{ parameters['dockerTag'] }}
+    latestTestTag: ${{ parameters['dockerFullyQualifiedImageName'] }}:test-latest
 
   steps:
   - task: AzureCLI@1
@@ -52,10 +53,10 @@ jobs:
       cd $(System.DefaultWorkingDirectory)/src/demo-ruby-webapp/
 
       # Build the Release Docker Stage, using the latest test image as a layer cache
-      docker build -t $(dockerImageTag) --target release --cache-from $(latestTestTag) .
+      docker build -t $(dockerImageAndTag) --target release --cache-from $(latestTestTag) .
 
       # Push the Release image to ACR
-      docker push $(dockerImageTag)
+      docker push $(dockerImageAndTag)
 
       # Push the Test image to ACR as test-latest
       docker push $(latestTestTag)

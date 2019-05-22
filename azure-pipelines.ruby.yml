@@ -2,8 +2,9 @@ variables:
   sandboxAzureSubscription: 'MTC Denver Sandbox (b0e04a4a-a321-4b66-b8fd-13715262ba3c)'
   productionAzureSubscription: 'MTC Denver Production (72f988bf-86f1-41af-91ab-2d7cd011db47)'
   acrName: mtcdensandboxdemo
-  dockerNamespace: ${{ variables['acrName'] }}.azurecr.io
-  dockerRepository: ${{ variables['dockerNamespace'] }}/msus-demos/demo-ruby-webapp
+  dockerNamespace: $(acrName).azurecr.io
+  dockerImageName: msus-demos/demo-ruby-webapp
+  webAppName: 'mtcden-demo-webapp-ruby-sandbox-app'
   storageAccountName: 
 
 stages:
@@ -11,9 +12,10 @@ stages:
   jobs:
   - template: src/demo-ruby-webapp/azure-pipelines.yml
     parameters:
-      azureSubscription: ${{ variables['sandboxAzureSubscription'] }}
-      acrName: ${{ variables['acrName'] }}
-      dockerRepository: ${{ variables['dockerRepository'] }}
+      azureSubscription: $(sandboxAzureSubscription)
+      acrName: $(acrName)
+      dockerFullyQualifiedImageName: $(dockerNamespace)/$(dockerImageName)
+      dockerTag: $(Build.BuildNumber)
 
 - stage: Staging
   jobs:
@@ -26,9 +28,9 @@ stages:
         ConnectionType: 'AzureRM'
         azureSubscription: $(sandboxAzureSubscription)
         appType: 'webAppContainer'
-        WebAppName: 'mtcden-demo-webapp-ruby-sandbox-app'
+        WebAppName: $(webAppName)
         DockerNamespace: $(dockerNamespace)
-        DockerRepository: $(dockerRepository)
+        DockerRepository: $(dockerImageName)
         DockerImageTag: $(Build.BuildNumber)
         
 # - stage: Production

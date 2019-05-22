@@ -6,7 +6,8 @@ cat >/etc/motd <<EOL
 /    |    \/    /|  |  /|  | \/\  ___/ 
 \____|__  /_____ \____/ |__|    \___  >
         \/      \/                  \/ 
-   C U S T O M    R U B Y    A P P
+           F E A T U R I N G
+       R U B Y   O N    R A I L S
 EOL
 cat /etc/motd
 
