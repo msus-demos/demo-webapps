@@ -6,8 +6,8 @@ services:
       context: .
       target: dev
 
-    # Start the rails server on port 80
-    command: bundle exec rails s -p 80 -b '0.0.0.0'
+    # Start the rails server on port 8080
+    command: bundle exec rails s -p 8080 -b '0.0.0.0'
 
     # Mount the current folder
     volumes:
@@ -16,9 +16,13 @@ services:
     # Mount a tmpfs volume for the rails tmp pids directory
     tmpfs: /var/app/tmp/pids
 
-    # Map container port 80 to host port 3000
+    # Map container port 8080 to host port 8080
     ports:
-      - 3000:80
+      - "8080:8080"
+    
+    environment:
+      - SECRET_KEY_BASE=05d8d92687a05ea5893fc42ace4b76a25a3f461cd43203a8d3bb93a342e54e74f1ad52f00c7707de8783282008e0b5ef6b1290f5bbdb14bcdb2e611864bebd2d
+      - RAILS_ENV=production
     
     # Ensure we can see the output during run
     stdin_open: true
