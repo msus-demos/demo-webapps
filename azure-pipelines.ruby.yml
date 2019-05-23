@@ -52,20 +52,20 @@ stages:
         DockerRepository: $(dockerImageName)
         DockerImageTag: $(Build.BuildNumber)
 
-# Production Release
-- stage: Production
-  jobs:
-  - job: Deploy
-    pool:
-      vmImage: 'Ubuntu-16.04'
-    steps:
-    - task: AzureRmWebAppDeployment@4
-      displayName: Deploy Web App
-      inputs:
-        ConnectionType: 'AzureRM'
-        azureSubscription: $(productionAzureSubscription)
-        appType: 'webAppContainer'
-        WebAppName: $(productionWebAppName)
-        DockerNamespace: $(dockerNamespace)
-        DockerRepository: $(dockerImageName)
-        DockerImageTag: $(Build.BuildNumber)
+# # Production Release
+# - stage: Production
+#   jobs:
+#   - job: Deploy
+#     pool:
+#       vmImage: 'Ubuntu-16.04'
+#     steps:
+#     - task: AzureRmWebAppDeployment@4
+#       displayName: Deploy Web App
+#       inputs:
+#         ConnectionType: 'AzureRM'
+#         azureSubscription: $(productionAzureSubscription)
+#         appType: 'webAppContainer'
+#         WebAppName: $(productionWebAppName)
+#         DockerNamespace: $(dockerNamespace)
+#         DockerRepository: $(dockerImageName)
+#         DockerImageTag: $(Build.BuildNumber)
