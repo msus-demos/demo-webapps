@@ -1,27 +1,49 @@
-name: $(Date:yyyyMMdd)$(Rev:.r)
-
-pool:
-  vmImage: 'ubuntu-16.04'
-
 trigger:
-  branches: 
+  batch: true
+  branches:
     include:
-      - master
+    - master
+    - terraform_multi_stage_deploy
   paths:
     include:
-      - terraform
-      - auzre-pipelines.terraform.yml
+    - terraform/*
 
-steps:
-# Verify template and generate terraform plan
-- script: |
-    cd terraform
-    terraform fmt -check=true
-  displayName: Verify terraform template
+pr:
+  autoCancel: true
+ 
+variables:
+  sandboxAzureSubscription: 'MTC Denver Sandbox'
+  productionAzureSubscription: 'MTC Denver Production'
+  storageAccountName: mtcdenterraformsandbox
 
-- script: cp terraform/* ./ $(Build.ArtifactStagingDirectory) -R
-  displayName: Copy terraform template to the staging directory
+# Build and Test
+stages:
+- stage: Verify
+  jobs:
+  - job: Deploy
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
+    - script: |
+        terraform fmt -check=true -diff=true
+      workingDirectory: $(System.DefaultWorkingDirectory)/terraform/
+      displayName: Verity the Terraform template format
+      condition: eq(variables['Build.Reason'], 'PullRequest')
 
-  # Publish build artifacts
-- task: PublishBuildArtifacts@1
+- stage: Staging
+  jobs:
+  - template: src/terraform/azure-pipelines.yml
+    parameters:
+      storageAccountName: 
+      storageAccountKey:
+      azureSubscription: $(sandboxAzureSubscription)
+      environment: staging
 
+- stage: Production
+  jobs:
+  - template: src/terraform/azure-pipelines.yml
+    parameters:
+      storageAccountName: 
+      storageAccountKey:
+      azureSubscription: $(productionAzureSubscription)
+      environment: production

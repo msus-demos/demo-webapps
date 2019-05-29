@@ -1,45 +1,51 @@
 parameters:
   azureSubscription:
-  acrName:
-  dockerRepository:
+  storageAccountName:
+  storageAccountKey:
+  environment:
+  planTier: standard
+  planSku: s1
+
+variables:
+ environment: ${{ parameters['environment'] }}
+ storageAccountName: ${{ parameters['StorageAccoutnName'] }}
+ storageAccountKey: ${{ parameters['storageAccountKey'] }}
+ planTier: ${{ parameters['planTier'] }}
+ planSku: ${{ parameters['planSku'] }}
 
 jobs:
-- job: BuildAndTest
-
+- job: Deploy
   pool:
     vmImage: 'Ubuntu-16.04'
 
   steps:
-  - script: |
-      cd terraform
-      terraform fmt -check=true
-    displayName: Verify terraform template
-
+  # Terraform Deploy
   - task: AzureCLI@1
+    displayName: Terraform Deploy
     inputs:
-      azureSubscription: ${{ parameters.azureSubscription }}
-      scriptLocation: 'inlineScript'
+      azureSubscription: $(sandboxAzureSubscription)
+      scriptLocation: inlineScript
+      workingDirectory: $(System.DefaultWorkingDirectory)/src/terraform/
+      arguments: '$(storageAccessKey)'
       inlineScript: |
-        # Configure Terraform auth since it doesn't support SP login from the CLI
-        export ARM_TENANT_ID=$(az account show --query tenantId)
+        export ARM_CLIENT_ID=$servicePrincipalId
+        export ARM_CLIENT_SECRET=$servicePrincipalKey
         export ARM_SUBSCRIPTION_ID=$(az account show --query id)
-        export ARM_CLIENT_ID=$servicePrincipalId 
-        export ARM_CLIENT_SECRET=$servicePrincipalKey 
+        export ARM_TENANT_ID=$(az account show --query tenantId)
 
         terraform init \
-            -backend-config="access_key=${{parameters.storageAccessKey}}" \
-            -backend-config="storage_account_name=${{parameters.storageAccountName}}" \
+            -backend-config="access_key=$1" \
+            -backend-config="storage_account_name=$(storageAccountName)" \
             -input=false 
 
-        terraform workspace select ${{parameters.environment}} || terraform workspace new ${{parameters.environment}}
+        terraform workspace select $(environment) || terraform workspace new $(environment)
 
         terraform plan \
-            -var environment="${{parameters.environment}}" \
-            -out=${{parameters.environment}}.tfplan \
-            -input=false
-
-        terraform apply \
-          ${{parameters.environment}}.tfplan
-          -input=false
-      addSpnToEnvironment: true
-    displayName: Deploy Infrastructure with Terraform
+          -var environment="$(environment)" \
+          -var plan_tier="$(planTier)" \
+          -var plan_sku="$(planSku)" \
+          -out=$(environment).tfplan \
+          -input=false 
+        
+        terraform apply $(environment).tfplan
+  condition: ne(variables['Build.Reason'], 'PullRequest')
