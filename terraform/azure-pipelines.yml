@@ -6,13 +6,6 @@ parameters:
   planTier: standard
   planSku: s1
 
-variables:
- environment: ${{ parameters['environment'] }}
- storageAccountName: ${{ parameters['StorageAccoutnName'] }}
- storageAccountKey: ${{ parameters['storageAccountKey'] }}
- planTier: ${{ parameters['planTier'] }}
- planSku: ${{ parameters['planSku'] }}
-
 jobs:
 - job: Deploy
   pool:
@@ -26,7 +19,7 @@ jobs:
       azureSubscription: $(sandboxAzureSubscription)
       scriptLocation: inlineScript
       workingDirectory: $(System.DefaultWorkingDirectory)/src/terraform/
-      arguments: '$(storageAccessKey)'
+      arguments: '${{ parameters["storageAccountKey"] }}'
       inlineScript: |
         export ARM_CLIENT_ID=$servicePrincipalId
         export ARM_CLIENT_SECRET=$servicePrincipalKey
@@ -35,17 +28,17 @@ jobs:
 
         terraform init \
             -backend-config="access_key=$1" \
-            -backend-config="storage_account_name=$(storageAccountName)" \
+            -backend-config="storage_account_name=${{ parameters['storageAccountName'] }}" \
             -input=false 
 
-        terraform workspace select $(environment) || terraform workspace new $(environment)
+        terraform workspace select ${{ parameters['environment'] }} || terraform workspace new ${{ parameters['environment'] }}
 
         terraform plan \
-          -var environment="$(environment)" \
-          -var plan_tier="$(planTier)" \
-          -var plan_sku="$(planSku)" \
-          -out=$(environment).tfplan \
+          -var environment="${{ parameters['environment'] }}" \
+          -var plan_tier="${{ parameters['planTier'] }}" \
+          -var plan_sku="${{ parameters['planSku'] }}" \
+          -out=${{ parameters['environment'] }}.tfplan \
           -input=false 
         
-        terraform apply $(environment).tfplan
+        terraform apply ${{ parameters['environment'] }}.tfplan
   condition: ne(variables['Build.Reason'], 'PullRequest')

@@ -32,18 +32,18 @@ stages:
 
 - stage: Staging
   jobs:
-  - template: src/terraform/azure-pipelines.yml
+  - template: terraform/azure-pipelines.yml
     parameters:
-      storageAccountName: 
-      storageAccountKey:
+      storageAccountName: mtcdenterraformsandbox
+      storageAccountKey: $(storageAccountKey)
       azureSubscription: $(sandboxAzureSubscription)
       environment: staging
 
 - stage: Production
   jobs:
-  - template: src/terraform/azure-pipelines.yml
+  - template: terraform/azure-pipelines.yml
     parameters:
-      storageAccountName: 
-      storageAccountKey:
+      storageAccountName: mtcdenterraformsandbox
+      storageAccountKey: $(storageAccountKey)
       azureSubscription: $(productionAzureSubscription)
       environment: production
