@@ -21,18 +21,25 @@ jobs:
       workingDirectory: $(System.DefaultWorkingDirectory)/src/terraform/
       arguments: '${{ parameters.storageAccountKey }}'
       inlineScript: |
+        # Fail on errors, output every command and result to the log
+        set -e -x
+
+        # Set terraform auth variables
         export ARM_CLIENT_ID=$servicePrincipalId
         export ARM_CLIENT_SECRET=$servicePrincipalKey
         export ARM_SUBSCRIPTION_ID=$(az account show --query id)
         export ARM_TENANT_ID=$(az account show --query tenantId)
 
+        # Init terraform env
         terraform init \
             -backend-config="access_key=$1" \
             -backend-config="storage_account_name=${{ parameters['storageAccountName'] }}" \
             -input=false 
 
+        # Select or create workspace
         terraform workspace select ${{ parameters.environment }} || terraform workspace new ${{ parameters.environment }}
 
+        # Generate a Terraform plan
         terraform plan \
           -var environment="${{ parameters.environment }}" \
           -var plan_tier="${{ parameters.planTier }}" \
@@ -40,5 +47,6 @@ jobs:
           -out=${{ parameters.environment }}.tfplan \
           -input=false 
         
+        # Apply the Terraform plan
         terraform apply ${{ parameters.environment }}.tfplan
   condition: ne(variables['Build.Reason'], 'PullRequest')
