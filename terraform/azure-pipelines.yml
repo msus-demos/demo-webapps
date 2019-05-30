@@ -18,8 +18,9 @@ jobs:
     inputs:
       azureSubscription: $(sandboxAzureSubscription)
       scriptLocation: inlineScript
-      workingDirectory: $(System.DefaultWorkingDirectory)/src/terraform/
+      workingDirectory: $(System.DefaultWorkingDirectory)/terraform/
       arguments: '${{ parameters.storageAccountKey }}'
+      addSpnToEnvironment: true
       inlineScript: |
         # Fail on errors, output every command and result to the log
         set -e -x
