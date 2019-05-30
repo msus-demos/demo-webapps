@@ -1,5 +1,5 @@
 resource "azurerm_key_vault" "default" {
-  name                        = "${var.prefix}-${var.name}-${substr(var.environment,0,4)}-kv"
+  name                        = "${var.prefix}${replace(var.name, "-", "")}${substr(var.environment,0,4)}-kv"
   location                    = "${azurerm_resource_group.default.location}"
   resource_group_name         = "${azurerm_resource_group.default.name}"
   enabled_for_disk_encryption = true
@@ -11,3 +11,6 @@ resource "azurerm_key_vault" "default" {
 
   tags = "${var.tags}"
 }
+
+
+
