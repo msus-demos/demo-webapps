@@ -3,7 +3,6 @@ trigger:
   branches:
     include:
     - master
-    - terraform_multi_stage_deploy
   paths:
     include:
     - terraform/*
